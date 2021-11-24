@@ -6,16 +6,6 @@ from Bio.Blast import NCBIXML
 
 
 def pipeline(Emin_hmm=0.001, Emin_blast=1e-10, Emin_blast_post=1e-10):
-    # Clean up directory
-    to_delete = []
-    to_delete.extend(glob.glob('./*.sea'))
-    to_delete.extend(glob.glob('./*.hmm'))
-    to_delete.extend(glob.glob('./*.hit'))
-    to_delete.extend(glob.glob('./*.db.*'))
-    to_delete.extend(glob.glob('./*.xml'))
-    if len(to_delete) > 0:
-        [os.remove(t) for t in to_delete]
-
     # BLAST Database for Cel
     cel_name = r'../cel/caenorhabditis_elegans.PRJNA13758.WBPS14.protein.fa'
     db_cmd = r"makeblastdb -dbtype prot -out cel.db -in {}".format(cel_name)
@@ -26,6 +16,10 @@ def pipeline(Emin_hmm=0.001, Emin_blast=1e-10, Emin_blast_post=1e-10):
     base_name = r'../cel/rhodopsins_cel_alignment.fas'
     build_cmd = r"hmmbuild {}.hmm {}".format(gpcr_name, base_name)
     os.system(build_cmd)
+
+    # Load Curated File
+    curated_name = r'../curated/rhodopsins.fa'
+    cel_gpcr_fa = [f.description for f in seqio.parse(curated_name, "fasta")]
 
     # Search
     species = glob.glob('../nematodes/*.fa')
@@ -59,15 +53,60 @@ def pipeline(Emin_hmm=0.001, Emin_blast=1e-10, Emin_blast_post=1e-10):
             Emin_blast, species_names[-1], cel_name)
         os.system(blast_cmd)
         records = [r for r in NCBIXML.parse(open("blast_result.xml"))]
-
+    
+        saves = []    
         for r in records:
+            # Each record is one query from the selected HMM hits of the species
             if r.alignments:
-                print("query: %s" % r.query)
+                # Each alignment is one BLAST hit
                 for align in r.alignments:
-                    for hsp in align.hsps:
-                        if hsp.expect < Emin_blast_post:
-                            print("match: %s " % align.title[:100])
+                    hit_id = align.hit_def.split(' ')[0]
+                    if hit_id in cel_gpcr_fa:
+                        saves.append(r.query)
+                        break
 
+        fasta_contents = [x for x in fasta_contents if x.id in saves]  
+        matches_name = '{}_gpcr_matches.fa'.format(species_names[-1])                
+        seqio.write(fasta_contents, matches_name, 'fasta')
+
+        # HMMTOP 
+        hmmtop_cmd = r'hmmtop -if={} -of={}.tra'.format(matches_name, species_names[-1])
+        os.system(hmmtop_cmd)
+
+        saves = []
+        with open(r"{}.tra".format(species_names[-1]), 'r') as fp:
+            while True:
+                prot = fp.readline()
+                if (prot == ''):
+                    break
+                parsed_line = [p for p in prot.split(' ') if p != '']
+                protein_name, protein_tmdom = parsed_line[2], int(parsed_line[4])
+                if protein_tmdom >= 4:
+                    saves.append(protein_name)
+        
+        # Prune fasta_contents by removing all proteins with less than 4 transmembrane domains
+        fasta_contents = [x for x in fasta_contents if x.id in saves]  
+        matches_name = '{}_gpcr_matches_tm4.fa'.format(species_names[-1])                
+        seqio.write(fasta_contents, matches_name, 'fasta')
+
+    # Join all results 
+    all_fasta = []
+    for s in species_names:
+        c = [f for f in seqio.parse('{}_gpcr_matches_tm4.fa'.format(s)  , "fasta")]
+        all_fasta.extend(c)
+    seqio.write(all_fasta, 'output_tm4_nematodes.fa', 'fasta')
+
+    # Clean up directory
+    to_delete = []
+    to_delete.extend(glob.glob('./*.sea'))
+    to_delete.extend(glob.glob('./*.hmm'))
+    to_delete.extend(glob.glob('./*.hit'))
+    to_delete.extend(glob.glob('./*.db.*'))
+    to_delete.extend(glob.glob('./*.xml'))
+    to_delete.extend(glob.glob('./*.tra'))
+    to_delete.extend(glob.glob('./*_matches*'))
+    if len(to_delete) > 0:
+        [os.remove(t) for t in to_delete]
     return True
 
 
