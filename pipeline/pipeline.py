@@ -94,6 +94,10 @@ def pipeline(Emin_hmm=0.001, Emin_blast=1e-10, Emin_blast_post=1e-10):
     for s in species_names:
         c = [f for f in seqio.parse('{}_gpcr_matches_tm4.fa'.format(s)  , "fasta")]
         all_fasta.extend(c)
+
+    # Join Cel gpcrs
+    cel_gpcrs = [f for f in seqio.parse(curated_name, "fasta")]
+    all_fasta.extend(cel_gpcrs)
     seqio.write(all_fasta, 'output_tm4_nematodes.fa', 'fasta')
 
     # Clean up directory
