@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import scipy.spatial.distance
 import scipy.cluster.hierarchy
 
@@ -19,7 +20,7 @@ def get_cmap(n):
 CLUSTER_COLORS = get_cmap(1024)
 
 
-def cluster(env, max_dist=1e-34, filename=None, cut_dist=1e-10, min_number=10):
+def cluster(env, max_dist=1e-34, filename=None, cut_dist=1e-10, min_number=5):
     distance_matrix = env.similarity_values_mtx
     distance_matrix[distance_matrix > cut_dist] = 100
     for i in range(len(env.sequences_array)):
@@ -91,14 +92,16 @@ def view_graph(clans_env, clusters, run_id=None, cutoff=1e-50):
     pylab.title('Clusters by linkage, {}'.format(run_id))
 
 
-#def cluster_at_evalues(clans_env, evalues=[1e-10, 1e-20, 1e-30, 1e-40, 1e-50]):
 def cluster_at_evalues(clans_env, evalues=[1e-30]):
+    tstamp = int(time.time_ns()/1e6)
     for n_d, max_d in enumerate(evalues):
-        clusters = cluster(clans_env, max_d, '../output/clustered_{}.clans'.format(n_d))
+        clusters = cluster(clans_env, max_d, clans_env.run_params['filename'] + '_clustered_{}_{}.clans'.format(n_d, tstamp))
 
 
 if __name__ == "__main__":
+    fpath = '../output/output_nematodes_1638877235761910000.clans'
     fh.read_input_file(
-        file_path='../output/output_nematodes_1638877235761910000.clans', file_format='clans')
+        file_path=fpath, file_format='clans')
     clans_env = fh.cfg
+    clans_env.run_params['filename'] = os.path.splitext(fpath)[0]
     cluster_at_evalues(clans_env)

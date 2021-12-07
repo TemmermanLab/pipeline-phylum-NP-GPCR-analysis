@@ -134,7 +134,7 @@ def pipeline(Emin_hmm=1e-10,
     seqio.write(all_fasta, 'output_nematodes.fa', 'fasta')
 
     # Move main output file
-    output_name = '../output/output_nematodes_{}.fa'.format(time.time_ns())
+    output_name = '../output/output_nematodes_{}.fa'.format(int(time.time_ns()/1e6))
     os.makedirs('../output', exist_ok=True)
     os.rename('output_nematodes.fa',
               output_name)
