@@ -32,9 +32,12 @@ def cluster(env, max_dist=1e-34, filename=None, cut_dist=1e-10, min_number=10):
 
     # Process clusters
     cluster_ids = np.unique(clusters).tolist()
+    cluster_sizes = [len(np.where(clusters == k)[0]) for k in cluster_ids]
+    ordered_id = np.argsort(-np.array(cluster_sizes))   
     env.groups_dict = dict()
     cluster_count = 0
-    for k in cluster_ids:
+    for o in ordered_id:
+        k = cluster_ids[o]
         seqids = np.where(clusters == k)[0]
         rgb_aslist = CLUSTER_COLORS[k].tolist() + [1.0]
         rgb_ascol = '{},{},{},{}'.format(*[int(255*c) for c in rgb_aslist])
@@ -44,7 +47,7 @@ def cluster(env, max_dist=1e-34, filename=None, cut_dist=1e-10, min_number=10):
             continue
 
         # Create group for cluster k 
-        env.groups_dict[k] = {'name': 'cluster_{}'.format(k),
+        env.groups_dict[k] = {'name': 'cluster_{}'.format(cluster_count),
                               'type': '0',
                               'order': cluster_count,
                               'size': '9',
