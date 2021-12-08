@@ -1,9 +1,16 @@
 import os
 import sys
 import time
+import glob
 import scipy.spatial.distance
 import scipy.cluster.hierarchy
 
+import Bio.SeqIO as seqio
+from Bio.SeqRecord import SeqRecord
+from Bio.Seq import Seq
+from Bio.Align.Applications import ClustalwCommandline
+
+from tqdm import tqdm
 import pylab
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
@@ -18,6 +25,13 @@ def get_cmap(n):
 
 
 CLUSTER_COLORS = get_cmap(1024)
+
+def msalign(clusters_fasta_dir):
+    all_fasta = glob.glob(clusters_fasta_dir + '/*.fa')
+    print('Multiple Sequence Alignment')
+    for f in tqdm(all_fasta):
+        clustalw_cmd = ClustalwCommandline(infile=f, outfile = os.path.splitext(f)[0] + '.fas')
+        clustalw_cmd()
 
 
 def cluster(env, max_dist=1e-34, filename=None, cut_dist=1e-10, min_number=5):
@@ -37,7 +51,12 @@ def cluster(env, max_dist=1e-34, filename=None, cut_dist=1e-10, min_number=5):
     ordered_id = np.argsort(-np.array(cluster_sizes))   
     env.groups_dict = dict()
     cluster_count = 0
-    for o in ordered_id:
+
+    clustdir = os.path.splitext(filename)[0]
+    os.makedirs(clustdir)
+
+    print('Linkage Clustering:')
+    for o in tqdm(ordered_id):
         k = cluster_ids[o]
         seqids = np.where(clusters == k)[0]
         rgb_aslist = CLUSTER_COLORS[k].tolist() + [1.0]
@@ -46,6 +65,11 @@ def cluster(env, max_dist=1e-34, filename=None, cut_dist=1e-10, min_number=5):
 
         if len(seqids) < min_number:
             continue
+
+        # Save sequences subset to FASTA
+        sequences_subset = [
+        SeqRecord(Seq(env.sequences_array[s_id][1]), env.sequences_array[s_id][0], description="") for s_id in seqids]
+        seqio.write(sequences_subset, os.path.join(clustdir, 'cluster_{}.fa'.format(cluster_count)), 'fasta')
 
         # Create group for cluster k 
         env.groups_dict[k] = {'name': 'cluster_{}'.format(cluster_count),
@@ -96,6 +120,7 @@ def cluster_at_evalues(clans_env, evalues=[1e-30]):
     tstamp = int(time.time_ns()/1e6)
     for n_d, max_d in enumerate(evalues):
         clusters = cluster(clans_env, max_d, clans_env.run_params['filename'] + '_clustered_{}_{}.clans'.format(n_d, tstamp))
+        msalign(clans_env.run_params['filename'] + '_clustered_{}_{}'.format(n_d, tstamp))
 
 
 if __name__ == "__main__":
