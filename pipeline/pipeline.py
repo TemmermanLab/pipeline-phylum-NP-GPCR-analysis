@@ -2,6 +2,8 @@ import os
 import sys
 import glob
 import time
+from tqdm import tqdm 
+
 import Bio.SearchIO.HmmerIO.hmmer3_text as hmmio
 import Bio.SeqIO as seqio
 from Bio.Blast import NCBIXML
@@ -18,7 +20,7 @@ import clustering
 
 def pipeline(Emin_hmm=1e-10,
              do_blast_vs_cel=False, Emin_blast=1e-10, Emin_blast_post=1e-10,
-             protein_tmdom_th=6):
+             protein_tmdom_th=7):
     # BLAST Database for Cel
     cel_name = r'../cel/caenorhabditis_elegans.PRJNA13758.WBPS14.protein.fa'
     db_cmd = r"makeblastdb -dbtype prot -out cel.db -in {}".format(cel_name)
@@ -47,7 +49,8 @@ def pipeline(Emin_hmm=1e-10,
     species = [s.replace('../nematodes/', '') for s in species]
     species_names = []
     smax = len(species)
-    for s in species[:smax]:
+    print('### HMM Search ###')
+    for s in tqdm(species[:smax]):
         species_names.append(s[:s.find('.')])
         for gpcr_name in ['rhodopsins', 'secretins']:
             proteome_path = os.path.join('../nematodes', s)
@@ -107,9 +110,9 @@ def pipeline(Emin_hmm=1e-10,
                     if (prot == ''):
                         break
                     parsed_line = [p for p in prot.split(' ') if p != '']
-                    protein_name, protein_tmdom = parsed_line[2], int(
-                        parsed_line[4])
-                    if protein_tmdom >= protein_tmdom_th:
+                    protein_name, protein_tmdom, tm_type = parsed_line[2], int(
+                        parsed_line[4]), parsed_line[3]
+                    if (protein_tmdom >= protein_tmdom_th) and (tm_type=="OUT"):
                         saves.append(protein_name)
 
             # Prune fasta_contents by removing all proteins with less than T transmembrane domains
@@ -158,6 +161,7 @@ def pipeline(Emin_hmm=1e-10,
 
 def clans(output_name, eval=1e-5, iters=20000):
     # Setup configuration for running CLANS
+    print('### CLANS Interface ###')
     input_file = os.path.abspath(output_name)
     prefix = os.path.split(output_name)[1].replace('.fa', '')
 
