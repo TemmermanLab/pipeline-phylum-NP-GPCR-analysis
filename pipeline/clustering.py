@@ -101,8 +101,6 @@ def cluster(env, max_dist=1e-34, filename=None, cut_dist=1e-10, min_number=5):
         pylab.show()
 
     # Process clusters
-    endpoint = next(x for x in range(len(clustered))
-                    if clustered[x, 2] > max_dist)
     large_clusters = [cluster_ids[q] for q in range(
         len(cluster_ids)) if cluster_sizes[q] >= min_number]
     n_clusters = len(large_clusters)
@@ -115,7 +113,7 @@ def cluster(env, max_dist=1e-34, filename=None, cut_dist=1e-10, min_number=5):
     os.makedirs(clustdir)
 
     # Load curated fastas
-    curated = [r'../curated/rhodopsins.fa', r'../curated/class_b_secretins.fa']
+    curated = [r'../curated/rhodopsins.fa', r'../curated/class_b_secretins.fa' , r'../curated/cel_protein_convertasis.fa']
     cel_fa = sum([[f.description for f in seqio.parse(curated_name, "fasta")] for curated_name in curated], [])
 
     print('### Linkage Clustering ###')
@@ -138,7 +136,7 @@ def cluster(env, max_dist=1e-34, filename=None, cut_dist=1e-10, min_number=5):
         seqio.write(sequences_subset, os.path.join(
             clustdir, 'cluster_{}.fa'.format(cluster_count)), 'fasta')
         if cel_subset:
-            seqio.write(sequences_subset, os.path.join(clustdir, 'cel_{}.fa'.format(cluster_count)), 'fasta')
+            seqio.write(cel_subset, os.path.join(clustdir, 'cel_{}.fa'.format(cluster_count)), 'fasta')
 
         # Create group for cluster k
         env.groups_dict[k] = {'name': 'cluster_{}'.format(cluster_count),
@@ -185,7 +183,7 @@ def view_graph(clans_env, clusters, run_id=None, cutoff=1e-50):
     pylab.title('Clusters by linkage, {}'.format(run_id))
 
 
-def cluster_at_evalues(clans_env, thresholds=[1e-30]):
+def cluster_at_evalues(clans_env, thresholds=[1e-5]):
     tstamp = int(time.time_ns()/1e6)
     for n_d, max_d in enumerate(thresholds):
         run_fname = clans_env.run_params['filename'] + \
@@ -197,7 +195,7 @@ def cluster_at_evalues(clans_env, thresholds=[1e-30]):
 
 
 if __name__ == "__main__":
-    fpath = '../output/output_nematodes_1639060542870.clans'
+    fpath = '../output/output_nematodes_1642527890591.clans'
     fh.read_input_file(
         file_path=fpath, file_format='clans')
     clans_env = fh.cfg

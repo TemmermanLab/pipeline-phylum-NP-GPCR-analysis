@@ -20,34 +20,23 @@ import clustering
 
 def pipeline(Emin_hmm=1e-10,
              do_blast_vs_cel=False, Emin_blast=1e-10, Emin_blast_post=1e-10,
-             protein_tmdom_th=7):
+             protein_tmdom_th=0):
     # BLAST Database for Cel
     cel_name = r'../cel/caenorhabditis_elegans.PRJNA13758.WBPS14.protein.fa'
     db_cmd = r"makeblastdb -dbtype prot -out cel.db -in {}".format(cel_name)
     os.system(db_cmd)
 
-    # Build Rhodopsins
-    gpcr_name = r'rhodopsins'
-    base_name = r'../cel/rhodopsins_cel_alignment.fas'
-    build_cmd = r"hmmbuild {}.hmm {}".format(gpcr_name, base_name)
-    os.system(build_cmd)
-
-    # Build Secretins
-    gpcr_name = r'secretins'
-    base_name = r'../cel/class_b_secretins.fas'
-    build_cmd = r"hmmbuild {}.hmm {}".format(gpcr_name, base_name)
-    os.system(build_cmd)
-    
-    #Build PCs
-    gpcr_name = r'proproteinconv'
+    # Build PCs
+    pc_name = r'PCs'
     base_name = r'../cel/cel_protein_convertasis.fas'
-    build_cmd = r"hmmbuild {}.hmm {}".format(gpcr_name, base_name)
+    build_cmd = r"hmmbuild {}.hmm {}".format(pc_name, base_name)
     os.system(build_cmd)
 
+   
     if do_blast_vs_cel:
         # Load Curated File
         curated_name = r'../curated/cel_protein_convertasis.fa'
-        cel_gpcr_fa = [f.description for f in seqio.parse(
+        cel_pc_fa = [f.description for f in seqio.parse(
             curated_name, "fasta")]
 
     # Search
@@ -58,18 +47,17 @@ def pipeline(Emin_hmm=1e-10,
     print('### HMM Search ###')
     for s in tqdm(species[:smax]):
         species_names.append(s[:s.find('.')])
-        for gpcr_name in ['proproteinconv']:
-        #for gpcr_name in ['rhodopsins', 'secretins']:
+        for pc_name in ['PCs']:
             proteome_path = os.path.join('../nematodes', s)
             search_cmd = r"hmmsearch -E {0} {1}.hmm {2} > {3}_{1}.sea".format(Emin_hmm,
-                                                                              gpcr_name,
+                                                                              pc_name,
                                                                               proteome_path,
                                                                               species_names[-1])
             os.system(search_cmd)
             print('Search completed: {}'.format(species_names[-1]))
 
             # Collect Sequences
-            with open('{}_{}.sea'.format(species_names[-1], gpcr_name), 'r') as fp:
+            with open('{}_{}.sea'.format(species_names[-1], pc_name), 'r') as fp:
                 parser = hmmio.Hmmer3TextParser(fp)
                 entries = [f for f in parser]
                 hits = entries[0].hit_keys
@@ -78,13 +66,13 @@ def pipeline(Emin_hmm=1e-10,
                 proteome_path, "fasta") if f.id in hits]
             for f in fasta_contents:
                 f.description = f.name
-            hit_name = "{}_{}.hit".format(species_names[-1], gpcr_name)
+            hit_name = "{}_{}.hit".format(species_names[-1], pc_name)
             seqio.write(fasta_contents, hit_name, "fasta")
 
             if do_blast_vs_cel:
                 # Blast vs. Cel
                 blast_cmd = r"blastp -evalue {} -query {}_{}.hit -db cel.db -out blast_result.xml -outfmt 5".format(
-                    Emin_blast, species_names[-1], gpcr_name, cel_name)
+                    Emin_blast, species_names[-1], pc_name, cel_name)
                 os.system(blast_cmd)
                 records = [r for r in NCBIXML.parse(open("blast_result.xml"))]
 
@@ -95,23 +83,23 @@ def pipeline(Emin_hmm=1e-10,
                         # Each alignment is one BLAST hit
                         for align in r.alignments:
                             hit_id = align.hit_def.split(' ')[0]
-                            if hit_id in cel_gpcr_fa:
+                            if hit_id in cel_pc_fa:
                                 saves.append(r.query)
                                 break
 
                 fasta_contents = [x for x in fasta_contents if x.id in saves]
-                matches_name = '{}_{}_gpcr_matches.fa'.format(
-                    species_names[-1], gpcr_name)
+                matches_name = '{}_{}_pcs_matches.fa'.format(
+                    species_names[-1], pc_name)
                 seqio.write(fasta_contents, matches_name, 'fasta')
 
             # HMMTOP 
             hmmtop_input = matches_name if do_blast_vs_cel else hit_name
             hmmtop_cmd = r'hmmtop -if={} -of={}_{}.tra'.format(
-                hmmtop_input, species_names[-1], gpcr_name)
+                hmmtop_input, species_names[-1], pc_name)
             os.system(hmmtop_cmd)
 
             saves = []
-            with open(r"{}_{}.tra".format(species_names[-1], gpcr_name), 'r') as fp:
+            with open(r"{}_{}.tra".format(species_names[-1], pc_name), 'r') as fp:
                 while True:
                     prot = fp.readline()
                     if (prot == ''):
@@ -119,29 +107,27 @@ def pipeline(Emin_hmm=1e-10,
                     parsed_line = [p for p in prot.split(' ') if p != '']
                     protein_name, protein_tmdom, tm_type = parsed_line[2], int(
                         parsed_line[4]), parsed_line[3]
-                    if (protein_tmdom >= protein_tmdom_th) and (tm_type=="OUT"):
+                    if (protein_tmdom >= protein_tmdom_th):
                         saves.append(protein_name)
 
             # Prune fasta_contents by removing all proteins with less than T transmembrane domains
             fasta_contents = [x for x in fasta_contents if x.id in saves]
             matches_name = '{}_{}_tm{}.fa'.format(
-                species_names[-1], gpcr_name, protein_tmdom_th)
+                species_names[-1], pc_name, protein_tmdom_th)
             seqio.write(fasta_contents, matches_name, 'fasta')
 
     # Join all results
     all_fasta = []
     for spec in species_names:
-        for gpcr_name in ['proproteinconv']:
-        #for gpcr_name in ['rhodopsins', 'secretins']:
+        for pc_name in ['PCs']:
             c = [f for f in seqio.parse(
-                '{}_{}_tm{}.fa'.format(spec, gpcr_name, protein_tmdom_th), "fasta")]
+                '{}_{}_tm{}.fa'.format(spec, pc_name, protein_tmdom_th), "fasta")]
             all_fasta.extend(c)
 
     # Join Cel gpcrs
     for curated_name in [r'../curated/cel_protein_convertasis.fa']:
-    #for curated_name in [r'../curated/rhodopsins.fa', r'../curated/class_b_secretins.fa']:
-        cel_gpcrs = [f for f in seqio.parse(curated_name, "fasta")]
-        all_fasta.extend(cel_gpcrs)
+        cel_pcs = [f for f in seqio.parse(curated_name, "fasta")]
+        all_fasta.extend(cel_pcs)
 
     seqio.write(all_fasta, 'output_nematodes.fa', 'fasta')
 
@@ -151,7 +137,6 @@ def pipeline(Emin_hmm=1e-10,
     os.rename('output_nematodes.fa',
               output_name)
 
-    # Remove duplicates------
     # Clean up directory
     to_delete = []
     to_delete.extend(glob.glob('./*.sea'))
