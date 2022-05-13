@@ -20,7 +20,7 @@ import clustering
 
 def pipeline(Emin_hmm=1e-10,
              do_blast_vs_cel=False, Emin_blast=1e-10, Emin_blast_post=1e-10,
-             protein_tmdom_th=0):
+             protein_tmdom_th=4):
     # BLAST Database for Cel
     cel_name = r'../cel/caenorhabditis_elegans.PRJNA13758.WBPS14.protein.fa'
     db_cmd = r"makeblastdb -dbtype prot -out cel.db -in {}".format(cel_name)

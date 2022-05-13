@@ -32,7 +32,7 @@ CLUSTER_COLORS = get_cmap(1024)
 def msalign(clusters_fasta_dir):
     all_fasta = glob.glob(clusters_fasta_dir + '/cluster*.fa')
     print('### Multiple Sequence Alignment ###')
-    for f in tqdm(all_fasta):
+    for f in tqdm(all_fasta, desc="Aligning Sequences"):
         alignment_path = os.path.splitext(f)[0] + '.fas'
         clustalw_cmd = ClustalwCommandline(
             infile=f,
@@ -44,7 +44,7 @@ def msalign(clusters_fasta_dir):
 def seqtree(clusters_fasta_dir):
     all_fastas = glob.glob(clusters_fasta_dir + '/*.fas')
     print('### Tree per Cluster ###')
-    for f in tqdm(all_fastas):
+    for f in tqdm(all_fastas, desc="Generating Trees"):
         alignment_path = f
         tree_path = os.path.splitext(f)[0] + '.tree'
         tree_cmd = FastTreeCommandline(cmd='fasttree',
@@ -59,7 +59,7 @@ def seqtree(clusters_fasta_dir):
 def motif_analysis(clusters_fasta_dir):
     all_fasta = glob.glob(clusters_fasta_dir + '/cluster*.fa')
     print('### Motif Analysis ###')
-    for f in tqdm(all_fasta):
+    for f in tqdm(all_fasta, desc="Generating Motifs"):
         run_dir = os.path.splitext(f)[0] + "_MEME"
         os.makedirs(run_dir)
         meme_cmd = "meme {} -protein -oc {} -nostatus -time 14400 -mod zoops -nmotifs 3 -minw 6 -maxw 50".format(
@@ -68,6 +68,7 @@ def motif_analysis(clusters_fasta_dir):
 
 
 def cluster(env, max_dist=1e-34, filename=None, cut_dist=1e-10, min_number=5):
+    print('### Linkage Clustering ###')
     do_debug_clustering = False
     distance_matrix = env.similarity_values_mtx
 
@@ -115,10 +116,9 @@ def cluster(env, max_dist=1e-34, filename=None, cut_dist=1e-10, min_number=5):
     # Load curated fastas
     curated = [r'../curated/rhodopsins.fa', r'../curated/class_b_secretins.fa' , r'../curated/cel_protein_convertasis.fa']
     cel_fa = sum([[f.description for f in seqio.parse(curated_name, "fasta")] for curated_name in curated], [])
-
-    print('### Linkage Clustering ###')
+    
     marked_for_deletion = []
-    for o in tqdm(ordered_id):
+    for o in tqdm(ordered_id, "Processing Clusters"):
         k = cluster_ids[o]
         seqids = np.where(clusters == k)[0]
         rgb_aslist = CLUSTER_COLORS[k].tolist() + [1.0]
@@ -183,7 +183,7 @@ def view_graph(clans_env, clusters, run_id=None, cutoff=1e-50):
     pylab.title('Clusters by linkage, {}'.format(run_id))
 
 
-def cluster_at_evalues(clans_env, thresholds=[1e-5]):
+def cluster_at_evalues(clans_env, thresholds=[1e-35]):
     tstamp = int(time.time_ns()/1e6)
     for n_d, max_d in enumerate(thresholds):
         run_fname = clans_env.run_params['filename'] + \
@@ -193,11 +193,30 @@ def cluster_at_evalues(clans_env, thresholds=[1e-5]):
         msalign(run_fname)
         seqtree(run_fname)
 
+def save_cluster_fastas(env):
+    filename = clans_env.run_params['filename']
+    clustdir = os.path.splitext(filename)[0]
+    os.makedirs(clustdir, exist_ok=True)
+
+    for _, group in tqdm(clans_env.groups_dict.items(), "Saving cluster FASTA"):
+        # Save sequences subset to FASTA
+        seqids = group['seqIDs'].keys()
+        sequences_subset = [
+            SeqRecord(Seq(env.sequences_array[s_id][1]), env.sequences_array[s_id][0], description="") for s_id in seqids]
+        seqio.write(sequences_subset, os.path.join(
+            clustdir, '{}.fa'.format(group['name'].replace('/', '_'))), 'fasta')
+    return None
+
 
 if __name__ == "__main__":
-    fpath = '../output/output_nematodes_1642527890591.clans'
+    # fpath = '../output/output_nematodes_1649765541024.clans'
+    fpath = '../output/panphylum_correct11052022_39groups.clans'
+    is_clustered = True
     fh.read_input_file(
         file_path=fpath, file_format='clans')
     clans_env = fh.cfg
     clans_env.run_params['filename'] = os.path.splitext(fpath)[0]
-    cluster_at_evalues(clans_env)
+    if is_clustered:
+        save_cluster_fastas(clans_env)
+    else:
+        cluster_at_evalues(clans_env)
