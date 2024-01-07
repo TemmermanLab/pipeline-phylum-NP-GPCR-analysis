@@ -1,3 +1,14 @@
 
 .DS_Store
 pipeline/.DS_Store
+*.fa
+*.fas
+*.dnd
+*.tree
+*.eps
+*.xml
+*.html
+*.txt
+*.json
+*.svg
+*.clans

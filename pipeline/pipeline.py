@@ -37,6 +37,11 @@ def pipeline(Emin_hmm=1e-10,
     base_name = r'../cel/class_b_secretins.fas'
     build_cmd = r"hmmbuild {}.hmm {}".format(gpcr_name, base_name)
     os.system(build_cmd)
+    # Build New_GPCRs
+    gpcr_name = r'new_GPCRs'
+    base_name = r'../cel/new_GPCRs.fas'
+    build_cmd = r"hmmbuild {}.hmm {}".format(gpcr_name, base_name)
+    os.system(build_cmd)
     
     #Build PCs
     gpcr_name = r'proproteinconv'
@@ -44,10 +49,16 @@ def pipeline(Emin_hmm=1e-10,
     build_cmd = r"hmmbuild {}.hmm {}".format(gpcr_name, base_name)
     os.system(build_cmd)
 
+    #Build Validation
+    gpcr_name = r'validating_dataset_pipeline'
+    base_name = r'../cel/validating_dataset_pipeline.fas'
+    build_cmd = r"hmmbuild {}.hmm {}".format(gpcr_name, base_name)
+    os.system(build_cmd)
+
     if do_blast_vs_cel:
-        # Load Curated File
-        #curated_name = r'../curated/cel_protein_convertasis.fa'
-        curated_name = r'../curated/rhodopsins.fa', r'../curated/class_b_secretins.fa'
+        #Load Curated File
+        #curated_name = r'../validating_dataset_pipeline.fa'
+        curated_name = r'../curated/rhodopsins.fa', r'../curated/class_b_secretins.fa', r'../curated/new_GPCRs.fa'
         cel_gpcr_fa = [f.description for f in seqio.parse(
             curated_name, "fasta")]
 
@@ -60,7 +71,8 @@ def pipeline(Emin_hmm=1e-10,
     for s in tqdm(species[:smax]):
         species_names.append(s[:s.find('.')])
         #for gpcr_name in ['proproteinconv']:
-        for gpcr_name in ['rhodopsins', 'secretins']:
+        for gpcr_name in ['rhodopsins', 'secretins', 'new_GPCRs']:
+        #for gpcr_name in ['validating_dataset_pipeline']:
             proteome_path = os.path.join('../nematodes', s)
             search_cmd = r"hmmsearch -E {0} {1}.hmm {2} > {3}_{1}.sea".format(Emin_hmm,
                                                                               gpcr_name,
@@ -133,14 +145,16 @@ def pipeline(Emin_hmm=1e-10,
     all_fasta = []
     for spec in species_names:
         #for gpcr_name in ['proproteinconv']:
-        for gpcr_name in ['rhodopsins', 'secretins']:
+        for gpcr_name in ['rhodopsins', 'secretins','new_GPCRs']:
+        #for gpcr_name in ['validating_dataset_pipeline']:
             c = [f for f in seqio.parse(
                 '{}_{}_tm{}.fa'.format(spec, gpcr_name, protein_tmdom_th), "fasta")]
             all_fasta.extend(c)
 
     # Join Cel gpcrs
     #for curated_name in [r'../curated/cel_protein_convertasis.fa']:
-    for curated_name in [r'../curated/rhodopsins.fa', r'../curated/class_b_secretins.fa']:
+    for curated_name in [r'../curated/rhodopsins.fa', r'../curated/class_b_secretins.fa', r'../curated/new_GPCRs.fa']:
+    #for curated_name in [r'../curated/validating_dataset_pipeline.fa']:
         cel_gpcrs = [f for f in seqio.parse(curated_name, "fasta")]
         all_fasta.extend(cel_gpcrs)
 

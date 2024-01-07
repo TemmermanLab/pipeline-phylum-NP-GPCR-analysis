@@ -163,11 +163,11 @@ def get_cmap(n):
                   [102, 255, 0],
                   [92, 0, 255]]
     np.random.shuffle(COLOR_LIST)
-    assert n < len(COLOR_LIST)
-    return np.array(COLOR_LIST[:n])
+    reps = n // len(COLOR_LIST) + 1
+    return np.tile(np.array(COLOR_LIST), (reps, 1))[:n]
 
 
-CLUSTER_COLORS = get_cmap(128)
+CLUSTER_COLORS = get_cmap(256)
 
 
 def get_parent(tree, child_clade):
@@ -181,7 +181,8 @@ def process_tree(fname, do_draw=False):
 
     # Load curated fastas
     curated = [r'../curated/rhodopsins.fa', r'../curated/class_b_secretins.fa',
-               r'../curated/cel_protein_convertasis.fa']
+               r'../curated/cel_protein_convertasis.fa',
+               r'../curated/new_GPCRs.fa']
     cel_fa = sum([[f.description for f in SeqIO.parse(curated_name, "fasta")]
                   for curated_name in curated], [])
 
@@ -310,11 +311,14 @@ def process_dist(tree, other_terminals, cel_terminals):
 
 if __name__ == "__main__":
     # fname = "/Users/luca/dev/GPCRs for HMMBuild/output/output_nematodes_1646735506703_clustered_0_1646740529811/correct/cluster_VP.tree"
-    rootdir = "/Users/luca/dev/GPCRs for HMMBuild/output/panphylum_correct19042022/curated"
+    #rootdir = "/Users/luca/dev/GPCRs for HMMBuild/output/panphylum_correct11052022/Curated"
+    #rootdir = "/Users/luca/dev/GPCRs for HMMBuild/output/29062022/curated"
+    rootdir = "/Users/luca/dev/GPCRs for HMMBuild/output/new_GPCRs_noTM"
+    
     # fname = r"/Users/luca/dev/GPCRs for HMMBuild/output/output_nematodes_1646735506703_clustered_0_1646740529811/correct/cluster_sec.tree"
     #rootdir = "/Users/luca/dev/GPCRs for HMMBuild/output/output_nematodes_1646735506703_clustered_0_1646740529811/correct"
     
-    already_done = False
+    already_done = True
     if not already_done:
         all_trees = [t for t in os.listdir(rootdir) if ".tree" in t and "colored" not in t]
         all_trees_clusters = []

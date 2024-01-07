@@ -183,7 +183,7 @@ def view_graph(clans_env, clusters, run_id=None, cutoff=1e-50):
     pylab.title('Clusters by linkage, {}'.format(run_id))
 
 
-def cluster_at_evalues(clans_env, thresholds=[1e-35]):
+def cluster_at_evalues(clans_env, thresholds=[1e-30]):
     tstamp = int(time.time_ns()/1e6)
     for n_d, max_d in enumerate(thresholds):
         run_fname = clans_env.run_params['filename'] + \
@@ -210,8 +210,10 @@ def save_cluster_fastas(env):
 
 if __name__ == "__main__":
     # fpath = '../output/output_nematodes_1649765541024.clans'
-    fpath = '../output/panphylum_correct11052022_39groups.clans'
-    is_clustered = True
+    #fpath = '../output/output_nematodes_1656485891557.clans'
+    #fpath = '../output/output_nematodes_1663241145320.clans'
+    fpath = '/Users/luca/Documents/20240103.clans'
+    is_clustered = False
     fh.read_input_file(
         file_path=fpath, file_format='clans')
     clans_env = fh.cfg
