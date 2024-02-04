@@ -1,5 +1,7 @@
 
 .DS_Store
+**/.DS_Store
+**/output/*
 pipeline/.DS_Store
 *.fa
 *.fas
@@ -12,3 +14,11 @@ pipeline/.DS_Store
 *.json
 *.svg
 *.clans
+*.pdf
+*.xl*
+*.png
+*.pyc
+*.jpg
+*.jpeg
+*.mas
+*.docx

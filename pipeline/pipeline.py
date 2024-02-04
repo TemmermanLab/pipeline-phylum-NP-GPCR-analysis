@@ -2,13 +2,15 @@ import os
 import sys
 import glob
 import time
+
+sys.path.append(os.path.abspath('../../CLANS-Python/'))
+
 from tqdm import tqdm 
 
 import Bio.SearchIO.HmmerIO.hmmer3_text as hmmio
 import Bio.SeqIO as seqio
 from Bio.Blast import NCBIXML
 
-sys.path.append(os.path.abspath('../../CLANS-Python/'))
 import clans.config as cfg
 import clans.io.parser as parser
 import clans.io.file_handler as fh
