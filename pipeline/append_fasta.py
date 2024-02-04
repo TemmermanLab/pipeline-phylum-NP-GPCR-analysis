@@ -11,7 +11,7 @@ from tqdm import tqdm
 import numpy as np
 
 if True:
-    sys.path.append('../../CLANS-Python/')
+    sys.path.append('../CLANS-Python/')
     import clans.io.file_handler as fh
 
 def append_to_all(fasta_dir, src_fasta_path, dst_fasta_path):

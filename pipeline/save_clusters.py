@@ -17,7 +17,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 if True:
-    sys.path.append('../../CLANS-Python/')
+    sys.path.append('../CLANS-Python/')
     import clans.io.file_handler as fh
 
 def get_cmap(n):

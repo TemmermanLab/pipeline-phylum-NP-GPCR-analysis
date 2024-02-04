@@ -8,7 +8,7 @@ import Bio.SearchIO.HmmerIO.hmmer3_text as hmmio
 import Bio.SeqIO as seqio
 from Bio.Blast import NCBIXML
 
-sys.path.append(os.path.abspath('../../CLANS-Python/'))
+sys.path.append(os.path.abspath('../CLANS-Python/'))
 import clans.config as cfg
 import clans.io.parser as parser
 import clans.io.file_handler as fh
@@ -173,7 +173,7 @@ def clans(output_name, eval=1e-5, iters=20000):
     cfg.run_params.update(cfg.layouts['FR']['params'])
     cfg.run_params['is_debug_mode'] = False
     cfg.run_params['dimensions_num_for_clustering'] = 2
-    cfg.run_params['working_dir'] = '../../CLANS-Python'
+    cfg.run_params['working_dir'] = '../CLANS-Python'
 
     # Read the input file (fasta/clans/delimited) and fill the relevant main data-structures
     before = time.time()
