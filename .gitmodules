@@ -1,0 +1,3 @@
+[submodule "CLANS-Python"]
+	path = CLANS-Python
+	url = https://github.com/LucaGolinelli/CLANS.git
