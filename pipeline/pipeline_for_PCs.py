@@ -15,8 +15,6 @@ import clans.io.file_handler as fh
 import clans.similarity_search.blast as blast
 import clans.layouts.layout_handler as lh
 
-import clustering
-
 
 def pipeline(Emin_hmm=1e-10,
              do_blast_vs_cel=False, Emin_blast=1e-10, Emin_blast_post=1e-10,

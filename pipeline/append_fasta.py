@@ -1,14 +1,7 @@
-import os
 import sys
-import time
 import glob
 
 import Bio.SeqIO as seqio
-from Bio.SeqRecord import SeqRecord
-from Bio.Seq import Seq
-
-from tqdm import tqdm
-import numpy as np
 
 if True:
     sys.path.append('../CLANS-Python/')
@@ -22,11 +15,6 @@ def append_to_all(fasta_dir, src_fasta_path, dst_fasta_path):
         all_seqs.extend()
 
         seqio.write(all_seqs, 'output_nematodes.fa', 'fasta')
-    # seqio.write(sequences_subset, os.path.join(
-    #     clustdir, 'cluster_{}.fa'.format(cluster_count)), 'fasta')
-    
-    # Save groups in new file
-    # 
     return None
 
 

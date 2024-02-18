@@ -1,13 +1,4 @@
-import os
-import sys
-import time
-import glob
-import scipy.spatial.distance
-import scipy.cluster.hierarchy
-
 import Bio.SeqIO as seqio
-from Bio.SeqRecord import SeqRecord
-from Bio.Seq import Seq
 keys_list = ['ACRNAN','ANCCAN', 'Acey', 'ACAC', 'Ag', 'Bm', 'BXY', 'nDi', 'Dd', 'EVEC', 'GPLIN', 'GROS', 'HCON', 'Hetgly', 'Hba', 'EN70', 'tig', 'MhA', 'Minc', 'NECAME', 'OVOC', 'PDA', 'PTRK', 'PSAM', 'PPA', 'nRc', 'SC.X', 'L596','SRAE', 'SSTP', 'T4D', 'T01', 'TMUE', 'TTRE']
 
 fasta_path = r'../output/PCs/output_nematodes_1640171400114.fa'
@@ -20,4 +11,3 @@ for key in keys_list:
             count+=1
             print(value)
     print("{}={}".format(key, count))
-    #print(count)
