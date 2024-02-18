@@ -45,18 +45,6 @@ def pipeline(
     build_cmd = r"hmmbuild {}.hmm {}".format(gpcr_name, base_name)
     os.system(build_cmd)
 
-    # Build PCs
-    gpcr_name = r"proproteinconv"
-    base_name = os.path.abspath(r"./cel/cel_protein_convertasis.fas")
-    build_cmd = r"hmmbuild {}.hmm {}".format(gpcr_name, base_name)
-    os.system(build_cmd)
-
-    # Build Validation
-    gpcr_name = r"validating_dataset_pipeline"
-    base_name = os.path.abspath(r"./cel/validating_dataset_pipeline.fas")
-    build_cmd = r"hmmbuild {}.hmm {}".format(gpcr_name, base_name)
-    os.system(build_cmd)
-
     # Search
     species = glob.glob("./nematodes/*.fa")
     species = [s.replace("./nematodes/", "") for s in species]
@@ -135,7 +123,7 @@ def pipeline(
         r"./curated/class_b_secretins.fa",
         r"./curated/new_GPCRs.fa",
     ]:
-        cel_gpcrs = [f for f in seqio.parse(curated_name, "fasta")]
+        cel_gpcrs = [f for f in seqio.parse(os.path.abspath(curated_name), "fasta")]
         all_fasta.extend(cel_gpcrs)
 
     seqio.write(all_fasta, "output_nematodes.fa", "fasta")
