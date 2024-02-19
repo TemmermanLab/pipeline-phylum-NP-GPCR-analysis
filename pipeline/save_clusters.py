@@ -7,7 +7,7 @@ from tqdm import tqdm
 import numpy as np
 
 if True:
-    sys.path.append("../CLANS-Python/")
+    sys.path.append("./CLANS-Python/")
     import clans.io.file_handler as fh
 
 
@@ -38,11 +38,11 @@ def save_all_clusters_from_clans(env, clustdir):
 
 
 if __name__ == "__main__":
-    fpath = "../output/20240103.clans"  # REFER TO YOUR CLANS FILE HERE
+    fpath = "./output/20240103.clans"  # REFER TO YOUR CLANS FILE HERE
     fh.read_input_file(file_path=fpath, file_format="clans")
     clans_env = fh.cfg
     clans_env.run_params["filename"] = os.path.splitext(fpath)[0]
-    if save_all_clusters_from_clans(clans_env, "../output"):
+    if save_all_clusters_from_clans(clans_env, "./output"):
         exit(1)
     else:
         exit(0)

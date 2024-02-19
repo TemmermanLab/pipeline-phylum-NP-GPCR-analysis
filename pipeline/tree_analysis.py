@@ -183,10 +183,9 @@ def process_tree(fname, do_draw=False):
 
     # Load curated fastas
     curated = [
-        r"../curated/rhodopsins.fa",
-        r"../curated/class_b_secretins.fa",
-        r"../curated/cel_protein_convertasis.fa",
-        r"../curated/new_GPCRs.fa",
+        r"./curated/rhodopsins.fa",
+        r"./curated/class_b_secretins.fa",
+        r"./curated/new_GPCRs.fa",
     ]
     cel_fa = sum(
         [
@@ -257,7 +256,7 @@ def process_tree(fname, do_draw=False):
 
 
 def generate_phylo_matrix(input):
-    dbdir = r"../nematodes"
+    dbdir = r"./nematodes"
     fas = [os.path.join(dbdir, t) for t in os.listdir(dbdir) if ".fa" in t]
 
     cels = []
@@ -320,7 +319,7 @@ def process_dist(tree, other_terminals, cel_terminals):
 
 
 if __name__ == "__main__":
-    rootdir = "../output/new_GPCRs_noTM"  # REPLACE WITH YOUR TARGET OUTPUT
+    rootdir = "./output/4"  # REPLACE WITH YOUR TARGET OUTPUT
 
     already_done = False
     if not already_done:

@@ -18,6 +18,11 @@ import clans.similarity_search.blast as blast
 import clans.layouts.layout_handler as lh
 
 
+def remove_duplicates(a, b):
+    b_names = [_.name for _ in b]
+    return [_ for _ in a if _.name not in b_names]
+
+
 def pipeline(
     Emin_hmm=1e-10,
     protein_tmdom_th=4,
@@ -115,6 +120,7 @@ def pipeline(
                     "{}_{}_tm{}.fa".format(spec, gpcr_name, protein_tmdom_th), "fasta"
                 )
             ]
+            c = remove_duplicates(c, all_fasta)
             all_fasta.extend(c)
 
     # Join Cel gpcrs
@@ -124,6 +130,7 @@ def pipeline(
         r"./curated/new_GPCRs.fa",
     ]:
         cel_gpcrs = [f for f in seqio.parse(os.path.abspath(curated_name), "fasta")]
+        cel_gpcrs = remove_duplicates(cel_gpcrs, all_fasta)
         all_fasta.extend(cel_gpcrs)
 
     seqio.write(all_fasta, "output_nematodes.fa", "fasta")
@@ -133,7 +140,6 @@ def pipeline(
     os.makedirs("./output", exist_ok=True)
     os.rename("output_nematodes.fa", output_name)
 
-    # Remove duplicates
     # Clean up directory
     to_delete = []
     to_delete.extend(glob.glob("./*.sea"))
