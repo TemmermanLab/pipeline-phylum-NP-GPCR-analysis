@@ -185,7 +185,6 @@ def process_tree(fname, do_draw=False):
     curated = [
         r"./curated/rhodopsins.fa",
         r"./curated/class_b_secretins.fa",
-        r"./curated/new_GPCRs.fa",
     ]
     cel_fa = sum(
         [
@@ -291,7 +290,7 @@ def generate_phylo_matrix(input):
     ]
     df.columns = species_fixed
     df = df[sorted(df)]
-    df.to_excel("cel_vs_sp.xls")
+    df.to_excel("cel_vs_sp.xls") #YOU CAN CHANGE THE NAME OF YOUR OUTPUT HERE IF NEEDED
     return input
 
 
@@ -319,7 +318,7 @@ def process_dist(tree, other_terminals, cel_terminals):
 
 
 if __name__ == "__main__":
-    rootdir = "./output/4"  # REPLACE WITH YOUR TARGET OUTPUT
+    rootdir = "./output/X"  # REPLACE WITH YOUR TARGET OUTPUT
 
     already_done = False
     if not already_done:

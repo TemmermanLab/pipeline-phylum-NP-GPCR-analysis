@@ -24,8 +24,8 @@ def remove_duplicates(a, b):
 
 
 def pipeline(
-    Emin_hmm=1e-10,
-    protein_tmdom_th=4,
+    Emin_hmm=1e-10, #IF INTERESTED IN A DIFFERENT CUTOFF YOU CAN MODIFY THIS VALUE
+    protein_tmdom_th=0, #IF INTERESTED IN A DIFFERENT CUTOFF YOU CAN MODIFY THIS VALUE
 ):
     # BLAST Database for Cel
     cel_name = os.path.abspath(r"./cel/caenorhabditis_elegans.PRJNA13758.WBPS14.protein.fa")
@@ -44,12 +44,6 @@ def pipeline(
     build_cmd = r"hmmbuild {}.hmm {}".format(gpcr_name, base_name)
     os.system(build_cmd)
 
-    # Build New_GPCRs
-    gpcr_name = r"new_GPCRs"
-    base_name = os.path.abspath(r"./cel/new_GPCRs.fas")
-    build_cmd = r"hmmbuild {}.hmm {}".format(gpcr_name, base_name)
-    os.system(build_cmd)
-
     # Search
     species = glob.glob("./nematodes/*.fa")
     species = [s.replace("./nematodes/", "") for s in species]
@@ -59,7 +53,7 @@ def pipeline(
     print("### HMM Search ###")
     for s in tqdm(species[:smax]):
         species_names.append(s[: s.find(".")])
-        for gpcr_name in ["rhodopsins", "secretins", "new_GPCRs"]:
+        for gpcr_name in ["rhodopsins", "secretins"]:
             proteome_path = os.path.join("./nematodes", s)
             search_cmd = r"hmmsearch -E {0} {1}.hmm {2} > {3}_{1}.sea".format(
                 Emin_hmm, gpcr_name, proteome_path, species_names[-1]
@@ -113,7 +107,7 @@ def pipeline(
     # Join all results
     all_fasta = []
     for spec in species_names:
-        for gpcr_name in ["rhodopsins", "secretins", "new_GPCRs"]:
+        for gpcr_name in ["rhodopsins", "secretins"]:
             c = [
                 f
                 for f in seqio.parse(
@@ -127,7 +121,6 @@ def pipeline(
     for curated_name in [
         r"./curated/rhodopsins.fa",
         r"./curated/class_b_secretins.fa",
-        r"./curated/new_GPCRs.fa",
     ]:
         cel_gpcrs = [f for f in seqio.parse(os.path.abspath(curated_name), "fasta")]
         cel_gpcrs = remove_duplicates(cel_gpcrs, all_fasta)

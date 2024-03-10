@@ -19,6 +19,6 @@ def append_to_all(fasta_dir, src_fasta_path, dst_fasta_path):
 
 
 if __name__ == "__main__":
-    fpath = './output/panphylum_correct11052022_39groups'
+    fpath = './output/X' #SELECT folder where you have your extracted fasta files
     srcpath = './curated/amine_rec.fa'
     append_to_all(fpath, srcpath, fpath)
