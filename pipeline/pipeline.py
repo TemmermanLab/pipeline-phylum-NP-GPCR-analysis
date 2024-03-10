@@ -25,7 +25,7 @@ def remove_duplicates(a, b):
 
 def pipeline(
     Emin_hmm=1e-10, #IF INTERESTED IN A DIFFERENT CUTOFF YOU CAN MODIFY THIS VALUE
-    protein_tmdom_th=0, #IF INTERESTED IN A DIFFERENT CUTOFF YOU CAN MODIFY THIS VALUE
+    protein_tmdom_th=4, #IF INTERESTED IN A DIFFERENT CUTOFF YOU CAN MODIFY THIS VALUE
 ):
     # BLAST Database for Cel
     cel_name = os.path.abspath(r"./cel/caenorhabditis_elegans.PRJNA13758.WBPS14.protein.fa")
